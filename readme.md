@@ -40,6 +40,44 @@ Before using this playbook, ensure you have:
 ## Architecture Overview
 
 ![Architecture Diagram](https://example.com/path/to/diagram.png) 
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffdf91', 'edgeLabelBackground':'#fff'}}}%%
+flowchart TD
+    A[User] -->|HTTPS| B[CloudFront CDN]
+    B -->|HTTPS| C[EC2 Instance]
+    C --> D[Nginx]
+    D --> E[PHP-FPM]
+    D --> F[Redis Cache]
+    E --> G[WordPress]
+    G --> H[MariaDB]
+    C -->|Optional| I[S3 Bucket\nStatic Assets]
+    
+    subgraph AWS
+        B
+        C
+        I
+    end
+    
+    subgraph EC2_Instance
+        D
+        E
+        F
+        G
+        H
+    end
+    
+    %% Components breakdown
+    C -->|SSL| J[Let's Encrypt]
+    K[Ansible Control Node] -.->|Provision & Configure| C
+    K -.->|Configure| B
+    K -.->|Optional Setup| I
+    
+    style A fill:#f9f,stroke:#333
+    style B fill:#9cf,stroke:#333
+    style C fill:#ffdf91,stroke:#333
+    style I fill:#c9f,stroke:#333
+    style K fill:#0f0,stroke:#333
+```
 
 1. **AWS EC2 Instance**: Ubuntu 20.04 LTS server running:
    - Nginx web server
