@@ -39,7 +39,7 @@ Before using this playbook, ensure you have:
 
 ## Architecture Overview
 
-![Architecture Diagram](https://example.com/path/to/diagram.png) 
+
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#ffdf91', 'edgeLabelBackground':'#fff'}}}%%
 flowchart TD
