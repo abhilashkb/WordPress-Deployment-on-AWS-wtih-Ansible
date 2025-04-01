@@ -1,0 +1,51 @@
+---
+# tasks file for nginx_setup
+# update apt index
+- name : Update apt cache
+  apt:
+    update_cache: yes 
+
+# install required packages
+- name: Install webserver packages
+  apt:
+    name: {{ item }}
+    state: present
+  loop:
+    - nginx
+    - php-fpm
+    - php-mysql
+    - mysql-server
+    - php-curl
+    - php-xml
+    - php-mbstring
+    - php-zip
+    - php-gd
+    - php-bcmath
+    - php-json
+    - php-xmlrpc
+    - php-soap
+    - mariadb-server
+    - mariadb-client
+    - php-cli
+    - php-pear
+
+# configure php-fpm
+- name: Configure php-fpm
+  template:
+    src: php-fpm.conf.j2
+    dest: /etc/php/7.4/fpm/php.ini
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart php-fpm  
+# configure nginx
+- name: Configure nginx
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/default
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - restart nginx

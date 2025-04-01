@@ -1,0 +1,65 @@
+---
+# tasks file for ec2-provision
+- name: create security group
+  aws.ec2.security_group:
+    name: "{{ ec2_security_group_name }}"
+    description: "Security group for {{ ec2_security_group_name }}"
+    vpc_id: "{{ ec2_vpc_id }}"
+    state: present
+    region: "{{ aws_region }}"
+    rules:
+      - port: 22
+        protocol: tcp
+        cidr_ip: "0.0.0.0/0"
+      - port: 80
+        protocol: tcp
+        cidr_ip: "0.0.0.0/0"
+      - port: 443
+        protocol: tcp 
+        cidr_ip: "0.0.0.0/0"
+    tags:
+      Name: "{{ ec2_security_group_name }}"
+
+- name: create ec2 instance
+  aws.ec2.instance:
+    name: "{{ ec2_instance_name }}"
+    image_id: "{{ ec2_instance_ami }}"
+    instance_type: "{{ ec2_instance_type }}"
+    key_name: "{{ ec2_instance_key_name }}"
+    security_group_ids:
+      - "{{ ec2_security_group_name }}"
+    subnet_id: "{{ ec2_instance_subnet_id }}"
+    assign_public_ip: "{{ assign_public_ip }}"
+    volume_size: "{{ volume_size }}"
+    region: "{{ aws_region }}"
+    tags:
+      Name: "{{ ec2_instance_name }}"
+- name: wait for instance to be running
+  aws.ec2.wait_instance:
+    instance_ids: "{{ ec2_instance_id }}"
+    state: running
+    region: "{{ aws_region }}"
+- name: get instance public IP
+  aws.ec2_instance_info:
+    instance_ids: "{{ ec2_instance_id }}"
+    region: "{{ aws_region }}"
+  register: ec2_instance_info
+- name: set instance public IP
+  set_fact:
+    ec2_instance_public_ip: "{{ ec2_instance_info.instances[0].public_ip_address }}"
+
+# add new instance to host group
+- name: add new instance to host group
+  add_host:
+    name: "{{ ec2_instance_public_ip }}"
+    groups: wordpress_servers
+    ansible_ssh_private_key_file: "~/.ssh/{{ ec2_instance_key_name }}"
+    ansible_user: ubuntu
+#wait for instance to be reachable
+- name: wait for instance to be reachable
+  wait_for:
+    host: "{{ ec2_instance_public_ip }}"
+    port: 22
+    delay: 10
+    timeout: 300
+    state: present

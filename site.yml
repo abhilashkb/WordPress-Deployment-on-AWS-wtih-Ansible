@@ -1,0 +1,23 @@
+---
+- name: Provision EC2 instance for WordPress
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - ec2_provision
+
+- name: Configure WordPress server
+  hosts: wordpress_servers
+  become: True
+  gather_facts: True
+  roles:
+    - nginx_setup
+    - wordpress_setup
+
+  post_tasks:
+    - name: Display WordPress admin credentials
+      debug:
+        msg: |
+          WordPress has been installed.
+          Admin URL: http://{{ ansible_host }}/wp-admin/
+          Admin username: {{ wp_admin_user }}
+          Admin password: {{ wp_admin_password }}
