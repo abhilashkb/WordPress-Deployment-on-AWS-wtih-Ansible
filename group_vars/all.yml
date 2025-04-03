@@ -2,16 +2,18 @@
 #aws credentials
 aws_access_key: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
 aws_secret_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
-aws_region: "{{ lookup('env', 'AWS_REGION') }}"
+aws_region: "us-east-1" # Replace with your desired region
 
 #ec2 instance details
 ec2_instance_type: "t2.micro"
 ec2_instance_ami: "ami-0f9de6e2d2f067fca" # Amazon Linux 2 AMI
-ec2_instance_key_name: "my-key-pair" # Replace with your key pair name
+ec2_instance_key_name: "my-key-pair.pem" # Replace with your key pair name
 ec2_instance_security_group: "my-wordpress-sg" # Replace with your security group name
 ec2_instance_subnet_id: "subnet-0bb1c79de3EXAMPLE" # Replace with your subnet ID
 assign_public_ip: true
 volume_size: 8 # Size in GB
+ec2_security_group_name: "wordpress-sg" # Replace with your security group name
+ec2_instance_name: "wordpress-server" # Replace with your instance name
 
 #wordpress details
 wordpress_db_name: "wordpress"

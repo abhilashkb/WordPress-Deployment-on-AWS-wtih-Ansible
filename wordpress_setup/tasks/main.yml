@@ -18,13 +18,20 @@
     src: /tmp/wordpress.tar.gz
     dest: /var/www/wordpress
     remote_src: true  
+# remove downloaded tar file
+- name: remove downloaded tar file
+  file:
+    path: /tmp/wordpress.tar.gz
+    state: absent
+
 - name: copy wp-config.php
-  copy:
-    src: wp-config.php
+  template:
+    src: wp-config.php.j2
     dest: /var/www/wordpress/wp-config.php
     owner: www-data
     group: www-data
     mode: '0644'
+# set permissions for wordpress directory
 - name: set permissions
   file:
     path: /var/www/wordpress
@@ -38,23 +45,54 @@
     group: www-data
     mode: '0755'  
 # ensure mysql is running
-- name: ensure mysql is running
+- name: Ensure MySQL is running
   service:
     name: mysql
     state: started
     enabled: yes
-#secure mysql installation
-- name: secure mysql installation
-  mysql_secure_installation:
-    validate_password: no
-    remove_anonymous_users: yes
-    disallow_root_login_remotely: yes
-    remove_test_database: yes
-    reload_service: yes
-    create_database: no
-    root_password: "{{ mysql_root_password }}"
-    root_password_confirm: "{{ mysql_root_password }}"
+
+# set MySQL root password
+- name: Set MySQL root password
+  mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mysql_root_password }}"
+    priv: '*.*:ALL,GRANT'
     state: present
+
+# remove anonymous users
+- name: Remove anonymous MySQL users
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+# disallow root login remotely
+- name: Disallow root login remotely
+  mysql_user:
+    name: root
+    host: "{{ item }}"
+    state: present
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+  loop:
+    - localhost
+    - 127.0.0.1
+    - ::1
+
+# remove test database
+- name: Remove test database
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mysql_root_password }}"
+
+# reload privilege tables
+- name: Reload MySQL privilege tables
+  command: mysqladmin flush-privileges -u root -p"{{ mysql_root_password }}"
 
 # create wordpress database
 - name: create wordpress database
@@ -72,4 +110,4 @@
     state: present
     login_user: root
     login_password: "{{ mysql_root_password }}"
-# 
+#

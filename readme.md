@@ -1,16 +1,19 @@
-# WordPress on AWS with Ansible Deployment
+# Ansible WordPress Deployment on AWS
 
-This project automates the deployment of a high-performance WordPress site on AWS infrastructure using Ansible. The setup includes Nginx, CloudFront CDN, Let's Encrypt SSL, Redis caching, and optional S3 integration for static assets.
+This repository automates the deployment of a WordPress site on AWS using Ansible. It provisions an EC2 instance, sets up Nginx, PHP, and MariaDB, and configures WordPress with Redis caching (via Docker). The repository is modular, with roles for each component of the setup.
+
+---
 
 ## Features
 
-- **Complete Infrastructure Provisioning**: EC2 instance with proper security groups
-- **Optimized Web Server**: Nginx configured for high performance
-- **Global Content Delivery**: CloudFront CDN integration
-- **Free SSL Certificates**: Automated Let's Encrypt certificate management
-- **Object Caching**: Redis for improved WordPress performance
-- **Static Assets Optimization**: Optional S3 bucket for media files
-- **Automated Deployment**: Fully reproducible infrastructure as code
+- **AWS EC2 Provisioning**: Automates the creation of an EC2 instance with a security group.
+- **Nginx Setup**: Configures Nginx as the web server for WordPress.
+- **PHP and MariaDB**: Installs and configures PHP and MariaDB for WordPress.
+- **WordPress Installation**: Automates WordPress installation and configuration.
+- **Redis Caching**: Sets up Redis as a Docker container and integrates it with WordPress for object caching.
+- **Modular Roles**: Each component is handled by a dedicated Ansible role for better reusability and maintainability.
+
+---
 
 ## Prerequisites
 
@@ -23,9 +26,6 @@ Before using this playbook, ensure you have:
 
 2. **AWS Account** with proper IAM permissions:
    - EC2 full access
-   - CloudFront full access
-   - S3 full access (if using static assets)
-   - Route53 access (if using DNS validation)
 
 3. **AWS CLI** configured with credentials:
    ```bash
@@ -85,16 +85,7 @@ flowchart TD
    - MariaDB database
    - Redis server
 
-2. **CloudFront CDN**: Global content delivery with:
-   - HTTPS encryption
-   - Edge caching
-   - DDoS protection
-
-3. **Let's Encrypt**: Automated SSL certificate management
-
-4. **Optional S3 Bucket**: For static assets offloading
-
-## Directory Structure
+## Repository Structure
 
 ```
 wordpress-aws/
@@ -106,10 +97,7 @@ wordpress-aws/
 │   ├── ec2_provision/       # EC2 instance provisioning
 │   ├── nginx_setup/         # Nginx web server configuration
 │   ├── wordpress_setup/     # WordPress installation
-│   ├── cloudfront_setup/    # CloudFront CDN configuration
-│   ├── letsencrypt/         # SSL certificate management
 │   ├── redis/               # Redis caching setup
-│   └── s3_setup/            # S3 static assets (optional)
 └── site.yml                 # Main playbook
 ```
 
@@ -150,6 +138,48 @@ Edit the following files to customize your deployment:
    - Install Let's Encrypt SSL certificates
    - Set up Redis caching
    - (Optional) Configure S3 for static assets
+
+---
+
+## Roles Overview
+
+### 1. **EC2 Provisioning (`ec2_provision`)**
+- Provisions an EC2 instance on AWS.
+- Creates a security group with rules for SSH, HTTP, and HTTPS.
+- Variables:
+  - `ec2_instance_name`: Name of the EC2 instance.
+  - `ec2_instance_type`: Instance type (e.g., `t2.micro`).
+  - `ec2_instance_ami`: AMI ID for the instance.
+  - `ec2_security_group_name`: Name of the security group.
+  - `aws_region`: AWS region for the instance.
+
+### 2. **Nginx Setup (`nginx_setup`)**
+- Installs and configures Nginx as the web server.
+- Configures PHP-FPM for WordPress.
+- Variables:
+  - `nginx_config_template`: Template file for Nginx configuration.
+  - `wordpress_root`: Root directory for WordPress files.
+  - `php_version`: PHP version to install (default: `7.4`).
+
+### 3. **WordPress Setup (`wordpress_setup`)**
+- Installs WordPress and configures the database.
+- Creates a WordPress database and user in MariaDB.
+- Configures Redis caching for WordPress.
+- Variables:
+  - `mysql_root_password`: Root password for MariaDB.
+  - `wp_admin_user`: WordPress admin username.
+  - `wp_admin_password`: WordPress admin password.
+  - `wp_db_name`: Name of the WordPress database.
+  - `wp_db_user`: WordPress database username.
+  - `wp_db_password`: WordPress database password.
+
+### 4. **Redis Setup (`redis`)**
+- Installs Docker and runs Redis as a container.
+- Configures WordPress to use Redis for object caching.
+- Variables:
+  - `redis_port`: Port for the Redis container (default: `6379`).
+
+---
 
 ## Post-Deployment
 

@@ -3,12 +3,14 @@
   hosts: localhost
   gather_facts: false
   roles:
-    - ec2_provision
+    - ec2-provision
 
 - name: Configure WordPress server
   hosts: wordpress_servers
   become: True
   gather_facts: True
+  environment: 
+   ANSIBLE_HOST_KEY_CHECKING: "False"
   roles:
     - nginx_setup
     - wordpress_setup
