@@ -1,2 +1,48 @@
 ---
-# tasks file for redis
+# tasks file for wordpress_setup
+
+# Install Docker
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+  become: yes
+
+# Start and enable Docker service
+- name: Ensure Docker is running
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+# Pull Redis Docker image
+- name: Pull Redis Docker image
+  docker_image:
+    name: redis
+    tag: latest
+    source: pull
+
+# Run Redis container
+- name: Run Redis container
+  docker_container:
+    name: redis
+    image: redis:latest
+    state: started
+    ports:
+      - "6379:6379"
+
+# Install WordPress Redis plugin
+- name: Install WordPress Redis plugin
+  command: wp plugin install redis-cache --activate
+  args:
+    chdir: /var/www/wordpress
+  become: yes
+  become_user: www-data
+
+# Enable Redis object caching
+- name: Enable Redis object caching
+  command: wp redis enable
+  args:
+    chdir: /var/www/wordpress
+  become: yes
+  become_user: www-data
